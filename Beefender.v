@@ -1,6 +1,5 @@
-module Beefender(clk, rst, cont1, cont2, cont3, /*score1, */ key0, key1, key2, key3, start_game, fire, DAC_clk, VGA_R, VGA_G, VGA_B, VGA_Hsync, 
-					VGA_Vsync, blank_n, KB_clk, data, /*grumbles, grumbles2, grumbles3, grumbles4, grumbles5, grumbles6, grumbles7, grumbles8, grumbles9*/);
-		// fix it
+module Beefender(clk, rst, cont1, cont2, cont3, key0, key1, key2, key3, start_game, fire, DAC_clk, VGA_R, VGA_G, VGA_B, VGA_Hsync, 
+					VGA_Vsync, blank_n, KB_clk, data);
 input clk, rst, fire;
 input KB_clk, data;
 input key0, key1, key2, key3;
@@ -12,8 +11,6 @@ wire [2:0]direction;
 output reg [7:0]VGA_R;
 output reg [7:0]VGA_G;
 output reg [7:0]VGA_B;
-//output [10:0]score1;
-//output [10:0] grumbles, grumbles2, grumbles3, grumbles4, grumbles5, grumbles6, grumbles7, grumbles8, grumbles9;
 
 output VGA_Hsync;
 output VGA_Vsync;
@@ -140,10 +137,11 @@ reg [10:0] x_screen_border, y_screen_border;
 kbInput keyboard(KB_clk, key0, key1, key2, key3, direction, cont1, cont2, cont3); //the "keyboard", aka the buttons
 updateCLK clk_updateCLK(clk, update); // missile clock
 updatePaddleCLK clk_updatePaddleCLK(clk, updatePad); // paddle clock
+	 //this makes the vga work. provived by Lucy Rukstales and Michaela Mitchell
 clk_reduce reduce(clk, VGA_clk);
 VGA_generator generator(VGA_clk, VGA_Hsync, VGA_Vsync, DisplayArea, xCounter, yCounter, blank_n);
 
-assign DAC_clk = VGA_clk; //DON'T DELETE. this allows the clock on the board to sync with the vga (allowing things to shop up on the monitor)
+assign DAC_clk = VGA_clk;
 
 assign paddle = (xCounter >= x_pad && xCounter <= x_pad + 8'd20 && yCounter >= y_pad && yCounter <= y_pad + 8'd20); // sets the size of the paddle
 assign missile = (xCounter >= x_missile && xCounter <= x_missile + 8'd20 && yCounter >= y_missile && yCounter <= y_missile + 8'd6); // sets the size of the missile
@@ -227,10 +225,7 @@ assign beebar2 = (xCounter >= x_beebar2 && xCounter <= x_beebar2 + 11'd7 && yCou
 assign return1 = (xCounter >= x_return1 && xCounter <= x_return1 + 11'd10 && yCounter >= y_return1 && yCounter <= y_return1 + 11'd10);
 assign return2 = (xCounter >= x_return2 && xCounter <= x_return2 + 11'd10 && yCounter >= y_return2 && yCounter <= y_return2 + 11'd10);
 assign return3 = (xCounter >= x_return3 && xCounter <= x_return3 + 11'd10 && yCounter >= y_return3 && yCounter <= y_return3 + 11'd10);
-
-
-
-// Create nine blocks
+//theesee are the beeesss
 assign block1 = (xCounter >= x_block1 && xCounter <= x_block1 + 8'd20 && yCounter >= y_block1 && yCounter <= y_block1 + 8'd20);
 assign block2 = (xCounter >= x_block2 && xCounter <= x_block2 + 8'd20 && yCounter >= y_block2 && yCounter <= y_block2 + 8'd20);
 assign block3 = (xCounter >= x_block3 && xCounter <= x_block3 + 8'd20 && yCounter >= y_block3 && yCounter <= y_block3 + 8'd20);
@@ -245,7 +240,7 @@ assign block9 = (xCounter >= x_block9 && xCounter <= x_block9 + 8'd20 && yCounte
 ///////////////////////////////////////////////////////////////////////////////FSM
 reg [10:0]S;
 reg [10:0]NS;
-reg [10:0]S1; //these are for movng blocks
+reg [10:0]S1; //these are for moving blocks
 reg [10:0]NS1;
 reg [10:0]S2;
 reg [10:0]NS2;
@@ -1187,23 +1182,6 @@ assign hit_bee_hr = ((x_pad == x_hive + 8'd60) && (y_pad + 8'd24 > y_hive) && (y
 wire hit_bee_ler;
 assign hit_bee_ler = ((x_pad == x_leaves + 8'd60) && (y_pad + 8'd24 > y_leaves) && (y_pad < y_leaves + 8'd90)) ? 1'b1 : 1'b0;
 
-
-
-//Check if the missile hits a corner
-
-wire paddle_hit; // checks if the missile has hit the paddle
-assign paddle_hit = (((y_missile + 5'd20) == y_pad) && (x_missile > x_pad) && ((x_missile+5'd20) < (x_pad + 8'd80))) ? 1'b1 : 1'b0;
-wire hit_me; // checks if the missile has hit the top of the screen
-assign hit_me = (y_missile == y_screen_border) ? 1'b1 : 1'b0;
-wire hit_me_low; // checks if a missile flew off the bottom of the screen
-assign hit_me_low = (y_missile == (y_screen_border + 11'd480)) ? 1'b1 : 1'b0;
-
-// Check if the missile hits a wall
-wire hit_side_left;
-assign hit_side_left = (x_missile == x_screen_border) ? 1'b1 : 1'b0;
-wire hit_side_right;
-assign hit_side_right = ((x_missile + 5'd20) == (x_screen_border + 11'd600)) ? 1'b1 : 1'b0;
-
 //////////////////////////////////////////reset
 always @ (posedge update or negedge rst)
 begin
@@ -1268,18 +1246,18 @@ begin
 			else if((x_missile < 11'd622 && hit_block1 == 1'd0 && hit_block2 == 1'd0 && hit_block3 == 1'd0 && hit_block4 == 1'd0 && hit_block5 == 1'd0 && hit_block6 == 1'd0 && hit_block7 == 1'd0 && hit_block8 == 1'd0 && hit_block9 == 1'd0) && hit_me == 1'd0)
 				NS = missile_move_left;
 			else if(hit_block1 == 1'd1 || hit_block2 == 1'd1 || hit_block3 == 1'd1 || hit_block4 == 1'd1 || hit_block5 == 1'd1 || hit_block6 == 1'd1 || hit_block7 == 1'd1 || hit_block8 == 1'd1 || hit_block9 == 1'd1)
-				NS = missile_reload1; //turning this into "return missile to bee
+				NS = missile_reload1; 
 			else if( x_missile >= 11'd622)
 				NS = missile_reload; 
 			if (life == 11'd0)
 				NS = end_game;
 		end
 			
-		missile_reload: //this will bee the st8 for returning the missile
+		missile_reload: //this will bee the st8 for returning the missile and it his a bee!
 		begin	
 			if (score1 == 11'd20)
 			NS = gamewin;
-			else if(fire == 1'd1) // add user input to launch the missile
+			else if(fire == 1'd1)
 				NS = missile_move_left;
 			else
 				NS = missile_reload;
@@ -1287,7 +1265,7 @@ begin
 				NS = end_game;
 		end
 		
-		missile_reload1: //this will bee the st8 for returning the missile
+		missile_reload1: //this will bee the st8 for returning the missile 
 		begin	
 			if (score1 == 11'd20)
 			NS = gamewin;
@@ -1323,7 +1301,6 @@ begin
 			else 
 				NS1 = start_anim;
 		end
-		// add new state here, thingy moves up, if it moved up start game
 		start_anim:
 		begin
 			if (y_redstart >= 11'd499)
@@ -1408,7 +1385,7 @@ begin
 			else 
 				NS2 = start_anim;
 		end
-		// add new state here, thingy moves up, if it moved up start game
+		
 		start_anim:
 		begin
 			if (y_redstart >= 11'd499)
@@ -1492,7 +1469,6 @@ begin
 			else 
 				NS3 = start_anim;
 		end
-		// add new state here, thingy moves up, if it moved up start game
 		start_anim:
 		begin
 			if (y_redstart >= 11'd499)
@@ -1577,7 +1553,6 @@ begin
 			else 
 				NS4 =  start_anim;
 		end
-		// add new state here, thingy moves up, if it moved up start game
 		start_anim:
 		begin
 			if (y_redstart >= 11'd499)
@@ -1661,7 +1636,6 @@ begin
 			else 
 				NS5 =  start_anim;
 		end
-		// add new state here, thingy moves up, if it moved up start game
 		start_anim:
 		begin
 			if (y_redstart >= 11'd499)
@@ -1828,7 +1802,6 @@ begin
 			else 
 				NS7 =  start_anim;
 		end
-		// add new state here, thingy moves up, if it moved up start game
 		start_anim:
 		begin
 			if (y_redstart >= 11'd499)
@@ -1912,7 +1885,6 @@ begin
 			else 
 				NS8 =  start_anim;
 		end
-		// add new state here, thingy moves up, if it moved up start game
 		start_anim:
 		begin
 			if (y_redstart >= 11'd499)
@@ -1995,7 +1967,6 @@ begin
 			else 
 				NS9 =  start_anim;
 		end
-		// add new state here, thingy moves up, if it moved up start game
 		start_anim:
 		begin
 			if (y_redstart >= 11'd499)
@@ -2069,7 +2040,7 @@ always @(posedge update or negedge rst)
 begin
 	if (rst==1'd0)
 	begin	
-		// Position the missles and cosmetics on the screen following the player
+		// Positions the missles and cosmetics on the screen following the player
 				y_missile = y_pad + 8'd7;
 				x_missile = x_pad;
 				y_tank = y_pad + 8'd7;
@@ -2231,7 +2202,7 @@ begin
 				x_return1 = 11'd660;
 				x_return2 = 11'd680;
 				x_return3 = 11'd700;
-		// Position the blocks on the screen
+		// Position the zombees on the screen
 		x_block1 = 11'd177;
 		y_block1 = 11'd45;
 		x_block2 = 11'd259;
@@ -2297,7 +2268,6 @@ begin
 				x_head = x_pad + 8'd21;
 			if (y_onswitch <= 11'd246)
 				begin
-					//y_onbase = y_onbase + 11'd1;
 					y_redstart = y_redstart + 11'd1;
 					if (y_redstart >= 11'd500)
 						begin
@@ -2356,7 +2326,7 @@ begin
 			end
 			missile_move_left:
 			begin
-				// Check if the missile hit a brick, then delete that brick by moving it wayyyyyy off screen
+				// so this is when a zombeee is hit by the missile which i just realized i was supposed to be calling laser... 
 				if(hit_block1 == 1'b1) // Delete block 1
 				begin
 					score1 <= score1 + 11'd1;
@@ -2620,7 +2590,7 @@ begin
 				end
 			end
 				
-			end_game: // wut ahh final reveal
+			end_game: // this is the part where you LOSE
 			begin
 				x_hive = 11'd700;
 				y_hive = 11'd500;
@@ -2768,7 +2738,7 @@ begin
 							
 						end
 						end
-		gamewin: // wut ahh final reveal
+		gamewin: // this is the part where you save the day 
 			begin
 				y_missile = 11'd500;
 				x_missile =  11'd700;
@@ -2967,8 +2937,6 @@ begin
 				grumbles <= grumbles + 11'd1;
 			else
 				grumbles <= grumbles;
-			//if (grumbles >= 32'd1005)
-				//grumbles <= 32'd0;
 		end
 		stinkyboi:
 		begin
@@ -2977,8 +2945,6 @@ begin
 				grumbles <= grumbles + 11'd1;
 			else
 				grumbles <= grumbles;
-			if (grumbles >= 32'd1005)
-				grumbles <= 32'd0;
 		end
 		endcase
 		
@@ -3025,8 +2991,6 @@ begin
 				grumbles2 <= grumbles2 + 11'd1;
 			else
 				grumbles2 <= grumbles2;
-				//if (grumbles2 >= 32'd1005)
-				//grumbles2 <= 32'd0;
 		end
 		stinkyboi:
 		begin
@@ -3083,8 +3047,6 @@ begin
 				grumbles3 <= grumbles3 + 11'd1;
 			else
 				grumbles3 <= grumbles3;
-				//if (grumbles3 >= 32'd1005)
-				//grumbles3 <= 32'd0;
 		end
 		stinkyboi:
 		begin
@@ -3141,8 +3103,6 @@ begin
 				grumbles4 <= grumbles4 + 11'd1;
 			else
 				grumbles4 <= grumbles4;
-				//if (grumbles4 >= 32'd1005)
-				//grumbles4 <= 32'd0;
 		end
 		stinkyboi:
 		begin
@@ -3199,8 +3159,6 @@ begin
 				grumbles5 <= grumbles5 + 11'd1;
 			else
 				grumbles5 <= grumbles5;
-				//if (grumbles5 >= 32'd1005)
-			//	grumbles5 <= 32'd0;
 		end
 		stinkyboi:
 		begin
@@ -3254,8 +3212,6 @@ begin
 				grumbles6 <= grumbles6 + 11'd1;
 			else
 				grumbles6 <= grumbles6;
-				///if (grumbles6 >= 32'd1005)
-				//grumbles6 <= 32'd0;
 		end
 		stinkyboi:
 		begin
@@ -3311,8 +3267,6 @@ begin
 				grumbles7 <= grumbles7 + 11'd1;
 			else
 				grumbles7 <= grumbles7;
-				//if (grumbles7 >= 32'd1005)
-				//grumbles7 <= 32'd0;
 		end
 		stinkyboi:
 		begin
@@ -3368,8 +3322,6 @@ begin
 				grumbles8 <= grumbles8 + 11'd1;
 			else
 				grumbles8 <= grumbles8;
-				///if (grumbles8 >= 32'd1005)
-				//grumbles8 <= 32'd0;
 		end
 		stinkyboi:
 		begin
@@ -3425,8 +3377,6 @@ begin
 				grumbles9 <= grumbles9 + 11'd1;
 			else
 				grumbles9 <= grumbles9;
-				//if (grumbles9 >= 32'd1005)
-				//grumbles9 <= 32'd0;
 		end
 		stinkyboi:
 		begin
@@ -3447,13 +3397,10 @@ begin
 	begin	
 		x_pad <= 11'd70; 
 		y_pad <= 11'd220;
-		
-		/*x_top_border <= 11'd280; 
-		y_top_border <= 11'd445;*/
 	end
 	else
 	begin
-		case(direction) //push buttons
+		case(direction) //push buttons 
 			3'b100:
 			begin
 				if (x_wout == 11'd177 && y_wout == 11'd245 && x_pad < 11'd640)
@@ -3526,7 +3473,7 @@ end
 //check colored pixcels (blue missile check against black paddle, purple blocks, black border)?
 
 
-always @(posedge VGA_clk) //border and color
+	always @(posedge VGA_clk) //border and color some of this was from Lucy and Michaela, i changed it up a bit tho. 
 begin
 	border <= (((xCounter >= 0) && (xCounter < 11) || (xCounter >= 630) && (xCounter < 641)) 
 				|| ((yCounter >= 0) && (yCounter < 11) || (yCounter >= 470) && (yCounter < 481)));
@@ -3551,7 +3498,7 @@ assign G = 1'b1 && screen_border && ~tank && ~missile && ~stripe && ~stripe2 && 
 	
 endmodule
 
-/////////////////////////////////////////////////////////////////// VGA_generator to display using VGA
+/////////////////////////////////////////////////////////////////// VGA_generator to display using VGA,  from Lucy and Michaela 
 module VGA_generator(VGA_clk, VGA_Hsync, VGA_Vsync, DisplayArea, xCounter, yCounter, blank_n);
 input VGA_clk;
 output VGA_Hsync, VGA_Vsync, blank_n;
@@ -3597,7 +3544,7 @@ assign blank_n = DisplayArea;
 
 endmodule
 
-/////////////////////////////////////////////////////////////////// missile speed
+/////////////////////////////////////////////////////////////////// missile speed  from Lucy and Michaela 
 module updateCLK(clk, update);
 input clk;
 output reg update;
@@ -3615,7 +3562,7 @@ end
 endmodule
 
 
-/////////////////////////////////////////////////////////////////// paddle speed
+/////////////////////////////////////////////////////////////////// bee speed,  from Lucy and Michaela 
 module updatePaddleCLK(clk, updatePad);
 input clk;
 output reg updatePad;
@@ -3632,7 +3579,7 @@ begin
 end
 endmodule
 
-/////////////////////////////////////////////////////////////////// reduce clk from 50MHz to 25MHz
+/////////////////////////////////////////////////////////////////// reduce clk from 50MHz to 25MHz, from Lucy and Michaela 
 module clk_reduce(clk, VGA_clk);
 
 	input clk;
@@ -3655,7 +3602,7 @@ module kbInput(KB_clk, key0, key1, key2, key3, direction, cont1, cont2, cont3);
 	always @(KB_clk)
 	begin
 	if (cont1 == 1'b1)
-	begin
+	begin //this is where i added more control options teehee 
 		if(key3 == 1'b1 & key2 == 1'b1 & key1 == 1'b0 & key0 == 1'b1)
 			direction = 3'b000;//left
 		else if(key3 == 1'b1 & key2 == 1'b1 & key0 == 1'b0 & key1 == 1'b1)
