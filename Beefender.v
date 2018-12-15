@@ -43,7 +43,7 @@ reg win_game;
 reg [10:0]score1;
 reg [10:0] grumbles, grumbles2, grumbles3, grumbles4, grumbles5, grumbles6, grumbles7, grumbles8, grumbles9;
 reg [10:0]life;
-reg [10:0]x_pad, y_pad; //the top left point of the paddle
+	reg [10:0]x_pad, y_pad; //the top left point of the bee
 reg [10:0]x_stripe,y_stripe;//left stripe of the bee hopefully
 reg [10:0]x_stripe2,y_stripe2;//right stripe of the bee hopefully
 reg [10:0]x_wing,y_wing;
@@ -51,8 +51,7 @@ reg [10:0]x_head,y_head;
 reg [10:0]x_tank,y_tank;
 reg [10:0]x_wing2,y_wing2;
 reg [10:0]x_sting,y_sting;
-reg [10:0]x_redstart,y_redstart; // red start screen
-/* soon we will put text and a "switch" saying game on
+	reg [10:0]x_redstart,y_redstart; // magenta start screen
 */
 reg [10:0]x_onswitch,y_onswitch;
 reg [10:0]x_onbase,y_onbase;
@@ -136,7 +135,7 @@ reg [10:0] x_screen_border, y_screen_border;
 //instantiate modules
 	kbInput keyboard(KB_clk, key0, key1, key2, key3, direction, cont1, cont2, cont3); //the controller
 updateCLK clk_updateCLK(clk, update); // missile clock
-updatePaddleCLK clk_updatePaddleCLK(clk, updatePad); // paddle clock
+	updatePaddleCLK clk_updatePaddleCLK(clk, updatePad); // bee clock
 	 //this makes the vga work. provived by Lucy Rukstales and Michaela Mitchell
 clk_reduce reduce(clk, VGA_clk);
 VGA_generator generator(VGA_clk, VGA_Hsync, VGA_Vsync, DisplayArea, xCounter, yCounter, blank_n);
@@ -3393,7 +3392,7 @@ begin
 end
 always @(posedge updatePad or negedge rst)
 begin
-	if (rst == 1'd0)
+	if (rst == 1'd0) //FSM for the bee moving up left down and right some of this was from Lucy and Michaela, i changed it up a bit tho.
 	begin	
 		x_pad <= 11'd70; 
 		y_pad <= 11'd220;
@@ -3425,14 +3424,14 @@ begin
 					x_pad <= 11'd121;
 				else if(hit_bee_ler == 1'd1)
 					x_pad <= 11'd61;
-				else if(x_pad > 11'd25) // keep the paddle from moving too far to the left
+				else if(x_pad > 11'd25) // keep the you know ;) from moving too far to the left
 					x_pad <= x_pad - 11'd1; //left at a speed of "1"
 				else
 					x_pad <= 11'd25;
 			end
 			3'b001: 
 			begin
-				if(x_pad < 11'd590) // keep the paddle from moving too far to the right
+				if(x_pad < 11'd590) // keep the buzz buzz from moving too far to the right
 					x_pad <= x_pad + 11'd1; //right at a speed of "1"
 				else if(hit_bee_b2l == 1'd1 || hit_bee_b1l == 1'd1 || hit_bee_b3l == 1'd1 || hit_bee_b4l == 1'd1 || hit_bee_b5l == 1'd1 || hit_bee_b6l == 1'd1 || hit_bee_b7l == 1'd1 || hit_bee_b8l == 1'd1 || hit_bee_b9l == 1'd1)
 					x_pad <= x_pad;
@@ -3441,7 +3440,7 @@ begin
 			end
 			3'b010: 
 			begin
-				if(y_pad > 11'd25) // keep the paddle from moving too far to the up
+				if(y_pad > 11'd25) // keep the beeeeeeeeeee from moving too far to the up
 					y_pad <= y_pad - 11'd1; //up at a speed of "1"
 				else if(hit_bee_b2b == 1'd1 || hit_bee_b1b == 1'd1 || hit_bee_b3b == 1'd1 || hit_bee_b4b == 1'd1 || hit_bee_b5b == 1'd1 || hit_bee_b6b == 1'd1 || hit_bee_b7b == 1'd1 || hit_bee_b8b == 1'd1 || hit_bee_b9b == 1'd1)
 					y_pad <= y_pad;
@@ -3456,7 +3455,7 @@ begin
 					y_pad <= 11'd370;
 				else if(hit_bee_let == 1'd1)
 					y_pad <= 11'd330;
-				else if(y_pad < 11'd435) // keep the paddle from moving too far to the down
+				else if(y_pad < 11'd435) // keep the beee from moving too far to the down
 					y_pad <= y_pad + 11'd1; //down at a speed of "1"
 				else
 					y_pad <= 11'd435;
@@ -3469,9 +3468,6 @@ begin
 		endcase
 	end
 end
-
-//check colored pixcels (blue missile check against black paddle, purple blocks, black border)?
-
 
 	always @(posedge VGA_clk) //border and color some of this was from Lucy and Michaela, i changed it up a bit tho. 
 begin
