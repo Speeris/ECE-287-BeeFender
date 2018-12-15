@@ -134,7 +134,7 @@ reg [10:0] y_block1,y_block2,y_block3,y_block4,y_block5,y_block6,y_block7,y_bloc
 reg [10:0] x_screen_border, y_screen_border;
 
 //instantiate modules
-kbInput keyboard(KB_clk, key0, key1, key2, key3, direction, cont1, cont2, cont3); //the "keyboard", aka the buttons
+	kbInput keyboard(KB_clk, key0, key1, key2, key3, direction, cont1, cont2, cont3); //the controller
 updateCLK clk_updateCLK(clk, update); // missile clock
 updatePaddleCLK clk_updatePaddleCLK(clk, updatePad); // paddle clock
 	 //this makes the vga work. provived by Lucy Rukstales and Michaela Mitchell
